@@ -1,0 +1,25 @@
+image:
+  tag: latest
+  repository: dxas90/learn
+
+imageConfig:
+  pullPolicy: IfNotPresent
+
+replicas: 1
+
+labels:
+  env: "staging"
+  cluster: "eks-cluster-blog"
+
+resources:
+  limits:
+    cpu: 1m
+    memory: 56Mi
+  requests:
+    cpu: 1m
+    memory: 56Mi
+
+service:
+  port: 80
+  targetPort: 8080
+  type: LoadBalancer
