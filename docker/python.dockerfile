@@ -15,6 +15,6 @@ RUN pip install -r /app/requirements.txt && \
 
 ENV LOGLEVEL WARNING
 
-EXPOSE 8000
+EXPOSE 5000
 
 CMD [ "gunicorn", "-c", "gunicorn_config.py", "app:app" ]
