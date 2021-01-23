@@ -1,8 +1,8 @@
-# learn [![Build Status](http://192.168.100.6:5000/api/badges/dxas90/learn/status.svg)](http://192.168.100.6:5000/dxas90/learn)
+# learn [![Build Status](http://192.168.100.6:5000/api/badges/dxas90/learn-python/status.svg)](http://192.168.100.6:5000/dxas90/learn-python)
 this is to learn openshift :)
 
 ```sh
-oc new-app https://github.com/dxas90/learn.git
+oc new-app https://github.com/dxas90/learn-python.git
 ```
 
 ```text
