@@ -5,6 +5,8 @@
 # https://docs.docker.com/engine/reference/builder/
 
 ARG PYTHON_VERSION=3.12
+
+# Base stage with common dependencies
 FROM python:${PYTHON_VERSION}-slim AS base
 
 # Prevents Python from writing pyc files.
@@ -15,6 +17,37 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    gcc \
+    python3-dev \
+    default-libmysqlclient-dev \
+    gettext-base && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Development stage
+FROM base AS development
+
+# Download dependencies as a separate step to take advantage of Docker's caching.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=bind,source=requirements.txt,target=requirements.txt \
+    --mount=type=bind,source=requirements-dev.txt,target=requirements-dev.txt \
+    python -m pip install -r requirements.txt -r requirements-dev.txt
+
+# Copy the source code into the container.
+COPY . .
+
+# Expose the port that the application listens on.
+EXPOSE 8000
+
+# Run the application in development mode
+CMD ["python", "app.py"]
+
+# Production stage
+FROM base AS production
 
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#user
@@ -27,9 +60,6 @@ RUN adduser \
     --no-create-home \
     --uid "${UID}" \
     appuser
-RUN apt update && \
-    apt install -y --no-install-recommends gcc python3-dev default-libmysqlclient-dev gettext-base && apt clean && \
-    rm -rf /var/lib/apt/lists/*
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.

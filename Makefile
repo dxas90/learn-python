@@ -115,13 +115,13 @@ run-prod: install
 ## Build Docker image
 docker-build:
 	@echo -e "$(BLUE)Building Docker image...$(RESET)"
-	docker build -t $(APP_NAME):$(VERSION) .
+	docker build --target production -t $(APP_NAME):$(VERSION) .
 	docker tag $(APP_NAME):$(VERSION) $(APP_NAME):latest
 
 ## Run Docker container
 docker-run:
 	@echo -e "$(BLUE)Running Docker container...$(RESET)"
-	docker run -it --rm -p 3000:3000 --name $(APP_NAME) $(APP_NAME):$(VERSION)
+	docker run -it --rm -p 8000:8000 --name $(APP_NAME) $(APP_NAME):$(VERSION)
 
 ## Start application with Docker Compose
 docker-compose:
