@@ -1,0 +1,8 @@
+apiVersion: v2
+name: "learn-python"
+description: "Helm chart learn-python"
+type: application
+version: "0.1.0"
+appVersion: "v0.1.0"
+maintainers:
+  - name: "Daniel Ramirez <dxas90@gmail.com>"

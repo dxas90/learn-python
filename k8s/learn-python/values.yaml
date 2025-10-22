@@ -1,0 +1,94 @@
+replicaCount: 1
+
+image:
+  repository: "ghcr.io/dxas90/learn-python"
+  pullPolicy: "IfNotPresent"
+  tag: "latest"
+
+service:
+  type: "ClusterIP"
+  port: 8000
+
+namespace: "default"
+
+httproute:
+  enabled: False
+  gatewayName: "gateway"
+  gatewayNamespace: "gateway-system"
+  hostnames:
+    - "example.local"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - port: 8000
+
+persistence:
+  enabled: False
+  capacity: "8Mi"
+  mountPath: "/data"
+
+autoscaling:
+  enabled: True
+  minReplicas: 1
+  maxReplicas: 2
+
+resources:
+  limits:
+    cpu: 1m
+    memory: 56Mi
+  requests:
+    cpu: 1m
+    memory: 56Mi
+
+chart:
+  label: "learn-python"
+
+# Environment configuration
+env:
+  # Environment variables from file will be loaded here during chart generation
+  # if env_file_path is provided in cookiecutter.json
+  variables: {}
+
+# Common secret and settings references
+common:
+  secrets:
+    enabled: False
+    name: "common-secrets"
+  settings:
+    enabled: False
+    name: "common-settings"
+
+# Other values from the original chart are intentionally left as defaults.
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podSecurityContext:
+  fsGroup: 65534
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 3
+  periodSeconds: 3
+  failureThreshold: 2
+
+readinessProbe:
+  tcpSocket:
+    port: 8000
+  initialDelaySeconds: 5
+  periodSeconds: 10
