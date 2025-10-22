@@ -19,47 +19,53 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          node-version: '20'
-          cache: 'npm'
+          python-version: '3.12'
+          cache: 'pip'
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          pip install uv
+          uv venv .venv
+          uv pip install -r requirements.txt -r requirements-dev.txt
 
-      - name: Run ESLint
-        run: npm run lint
+      - name: Run flake8
+        run: .venv/bin/flake8 app.py test_app.py --max-line-length=120
 
-      - name: Check formatting
-        run: npm run format
+      - name: Check formatting with black
+        run: .venv/bin/black --check app.py test_app.py
 
   test:
     name: Run Tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20, 21]
+        python-version: ['3.11', '3.12', '3.13']
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          pip install uv
+          uv venv .venv
+          uv pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Run tests with coverage
-        run: npm run test:coverage
+        run: .venv/bin/pytest test_app.py -v --cov=app --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          file: ./coverage/lcov.info
+          file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
 
@@ -70,25 +76,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          node-version: '20'
-          cache: 'npm'
+          python-version: '3.12'
+          cache: 'pip'
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          pip install uv
+          uv venv .venv
+          uv pip install -r requirements.txt -r requirements-dev.txt
 
-      - name: Run npm audit
-        run: npm audit --audit-level=high
-
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high
+      - name: Run pip-audit
+        run: .venv/bin/pip-audit
 
   build:
     name: Build and Scan Docker Image
@@ -162,7 +163,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     environment:
       name: staging
-      url: https://staging.learn-node.example.com
+      url: https://staging.learn-python.example.com
 
     steps:
       - name: Checkout code
@@ -172,7 +173,6 @@ jobs:
         uses: helm/kind-action@v1
         with:
           cluster_name: staging-cluster
-          kubectl_version: v1.28.4
 
       - name: Deploy to staging
         run: |
@@ -188,7 +188,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     environment:
       name: production
-      url: https://learn-node.example.com
+      url: https://learn-python.example.com
 
     steps:
       - name: Checkout code

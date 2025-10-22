@@ -1,4 +1,4 @@
-# GitLab CI/CD Pipeline for Learn Node.js Microservice
+# GitLab CI/CD Pipeline for Learn Python Microservice
 # Updated with modern practices and comprehensive testing
 
 variables:
@@ -147,7 +147,7 @@ deploy-staging:
   image: alpine/k8s:1.28.4
   environment:
     name: staging
-    url: https://staging.learn-node.example.com
+    url: https://staging.learn-python.example.com
   before_script:
     - |
       # Install kind for local Kubernetes testing
@@ -182,7 +182,7 @@ deploy-production:
   image: alpine/k8s:1.28.4
   environment:
     name: production
-    url: https://learn-node.example.com
+    url: https://learn-python.example.com
   before_script:
     - echo "Setting up production deployment..."
   script:

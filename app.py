@@ -205,7 +205,7 @@ def info():
             },
         },
         "environment": {
-            "node_env": os.environ.get("NODE_ENV", "Not set"),
+            "python_env": os.environ.get("PYTHON_ENV", "Not set"),
             "flask_env": os.environ.get("FLASK_ENV", "development"),
             "port": os.environ.get("PORT", "8000"),
             "host": os.environ.get("HOST", "0.0.0.0"),
@@ -238,7 +238,7 @@ def echo():
                 "timestamp": datetime.now(UTC).isoformat(),
             }
         )
-    except Exception as e:
+    except Exception:
         return (
             jsonify(
                 {

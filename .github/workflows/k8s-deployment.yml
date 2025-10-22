@@ -80,22 +80,22 @@ jobs:
           apiVersion: apps/v1
           kind: Deployment
           metadata:
-            name: learn-node
+            name: learn-python
             labels:
-              app: learn-node
+              app: learn-python
           spec:
             replicas: 2
             selector:
               matchLabels:
-                app: learn-node
+                app: learn-python
             template:
               metadata:
                 labels:
-                  app: learn-node
+                  app: learn-python
               spec:
                 containers:
-                - name: learn-node
-                  image: learn-node:test
+                - name: learn-python
+                  image: learn-python:test
                   imagePullPolicy: Never
                   ports:
                   - containerPort: 3000
@@ -120,9 +120,9 @@ jobs:
           apiVersion: v1
           kind: Service
           metadata:
-            name: learn-node-service
+            name: learn-python-service
             labels:
-              app: learn-node
+              app: learn-python
           spec:
             type: ClusterIP
             ports:
@@ -130,7 +130,7 @@ jobs:
               targetPort: 3000
               protocol: TCP
             selector:
-              app: learn-node
+              app: learn-python
           EOF
           fi
 
@@ -140,11 +140,11 @@ jobs:
           kubectl apply -f k8s/deployment.yaml
 
           echo "Waiting for deployment to be ready..."
-          kubectl wait --for=condition=available --timeout=300s deployment/learn-node
+          kubectl wait --for=condition=available --timeout=300s deployment/learn-python
 
           echo "=== Deployment Status ==="
           kubectl get deployments
-          kubectl get pods -l app=learn-node
+          kubectl get pods -l app=learn-python
           kubectl get services
 
       - name: Test application endpoints
@@ -152,7 +152,7 @@ jobs:
           echo "Testing application endpoints..."
 
           # Port forward to access the service
-          kubectl port-forward service/learn-node-service 8080:80 &
+          kubectl port-forward service/learn-python-service 8080:80 &
           sleep 10
 
           # Test health endpoint
@@ -173,7 +173,7 @@ jobs:
         if: always()
         run: |
           echo "=== Application Logs ==="
-          kubectl logs -l app=learn-node --tail=50
+          kubectl logs -l app=learn-python --tail=50
 
       - name: Cleanup
         if: always()
@@ -188,7 +188,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     environment:
       name: staging
-      url: https://staging.learn-node.example.com
+      url: https://staging.learn-python.example.com
 
     steps:
       - name: Checkout code
@@ -208,7 +208,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     environment:
       name: production
-      url: https://learn-node.example.com
+      url: https://learn-python.example.com
 
     steps:
       - name: Checkout code
