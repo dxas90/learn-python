@@ -67,9 +67,9 @@ def internal_error(error):
                 "message": "Internal Server Error",
                 "statusCode": 500,
                 "timestamp": datetime.now(UTC).isoformat(),
-                "details": str(error)
-                if os.environ.get("FLASK_ENV") != "production"
-                else None,
+                "details": (
+                    str(error) if os.environ.get("FLASK_ENV") != "production" else None
+                ),
             }
         ),
         500,
