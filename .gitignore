@@ -629,5 +629,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+.debug/
 !scripts
 __snapshot__
