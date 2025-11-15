@@ -193,13 +193,20 @@ jobs:
             VCS_REF=${{ github.sha }}
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
 
+      - name: Extract SHA tag for Trivy
+        if: github.event_name != 'pull_request'
+        id: extract-sha-tag
+        run: |
+          echo "sha-tag=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ env.GITHUB_SHA::7 }}" >> $GITHUB_OUTPUT
+          echo "Found SHA tag: ${SHA_TAG}"
+
       - name: Run Trivy vulnerability scanner
         if: github.event_name != 'pull_request'  # only run Trivy when image is pushed (not on PRs)
         id: trivy
         continue-on-error: true
         uses: aquasecurity/trivy-action@0.33.1
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${GITHUB_SHA::7}
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ env.GITHUB_SHA::7 }}
           format: 'sarif'
           vuln-type: 'library'
           output: 'trivy-results.sarif'
