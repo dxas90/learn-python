@@ -78,6 +78,18 @@ tests:
               fieldRef:
                 fieldPath: metadata.namespace
 
+  - it: should set security context values for the container
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 1000
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+
   - it: should apply custom labels
     set:
       podLabels:
@@ -96,3 +108,18 @@ tests:
       - equal:
             path: spec.template.metadata.annotations.custom-annotation
             value: custom-value
+
+  - it: should mount /tmp as an emptyDir when readOnlyRootFilesystem is enabled
+    set:
+      securityContext.readOnlyRootFilesystem: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: tmp
+            mountPath: /tmp
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: tmp
+            emptyDir: {}

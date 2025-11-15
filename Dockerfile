@@ -51,7 +51,7 @@ FROM base AS production
 
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#user
-ARG UID=10001
+ARG UID=1000
 RUN adduser \
     --disabled-password \
     --gecos "" \
@@ -60,6 +60,11 @@ RUN adduser \
     --no-create-home \
     --uid "${UID}" \
     appuser
+
+# Ensure standard temporary directories exist and are writable by the app.
+# Keeping them writable by all (sticky bit) makes them usable when the container
+# runs with readOnlyRootFilesystem; at runtime the chart mounts an emptyDir to /tmp.
+RUN mkdir -p /tmp /var/tmp /usr/tmp && chmod 1777 /tmp /var/tmp /usr/tmp
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
@@ -73,7 +78,13 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 USER appuser
 
 # Copy the source code into the container.
+# Copy the app into the container image. This is done as root during build time
+# (even if the build switches USER earlier). Files are left owned by root, but
+# the mounted /tmp will be available at runtime for write operations.
 COPY . .
+
+# Ensure Python and other libraries use the expected TMPDIR
+ENV TMPDIR=/tmp
 
 # Expose the port that the application listens on.
 EXPOSE 8000

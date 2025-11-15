@@ -67,6 +67,7 @@ env:
   # if env_file_path is provided in cookiecutter.json
   variables:
     APP_ENV: "production"
+    TMPDIR: "/tmp"
 # Common secret and settings references
 common:
   secrets:
@@ -102,7 +103,7 @@ livenessProbe:
   httpGet:
     path: /healthz
     port: http
-  initialDelaySeconds: 20
+  initialDelaySeconds: 60
   periodSeconds: 10
   failureThreshold: 6
 
@@ -112,14 +113,18 @@ readinessProbe:
   httpGet:
     path: /healthz
     port: http
-  initialDelaySeconds: 10
+  initialDelaySeconds: 20
   periodSeconds: 10
   failureThreshold: 3
 # Volume mounts for nginx writable directories (required for readOnlyRootFilesystem)
 volumeMounts:
   - name: app-cache
     mountPath: /var/cache/app
+  - name: tmp
+    mountPath: /tmp
 # Volumes for nginx writable directories (emptyDir for temporary storage)
 volumes:
   - name: app-cache
+    emptyDir: {}
+  - name: tmp
     emptyDir: {}
