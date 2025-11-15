@@ -1,0 +1,18 @@
+# https://ahmet.im/blog/kubernetes-network-policy/
+---
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: RELEASE-NAME-learn-python
+  labels:
+    helm.sh/chart: learn-python-0.1.0
+    app.kubernetes.io/name: learn-python
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/part-of: "learn-python"
+    app.kubernetes.io/version: "v0.1.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  podSelector:
+    matchLabels: {}
+  ingress:
+    - {}

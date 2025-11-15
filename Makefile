@@ -33,7 +33,7 @@ YELLOW := \033[33m
 BLUE := \033[34m
 RESET := \033[0m
 
-.PHONY: help install build package test test-coverage test-watch clean run dev run-prod docker-build docker-run docker-compose docker-compose-down k8s-deploy k8s-undeploy helm-deploy security lint lint-fix format logs monitoring version dev-setup health-check update outdated quick-start full-pipeline release
+.PHONY: help install build package test test-coverage test-watch clean run dev run-prod docker-build docker-run docker-compose docker-compose-down k8s-deploy k8s-undeploy helm-deploy helm-test security lint lint-fix format logs monitoring version dev-setup health-check update outdated quick-start full-pipeline release
 
 ## Show this help message
 help:
@@ -158,7 +158,23 @@ k8s-deploy:
 ## Deploy using Helm
 helm-deploy:
 	@echo -e "$(BLUE)Deploying with Helm...$(RESET)"
-	helm upgrade --install $(APP_NAME) ./charts/learn-node
+	helm upgrade --install $(APP_NAME) ./k8s/learn-python
+
+
+## Run helm lint and unit tests for the chart
+helm-test:
+	@echo -e "$(BLUE)Running helm lint and helm-unittest...$(RESET)"
+	@if ! command -v helm > /dev/null 2>&1; then \
+		echo -e "$(RED)helm is not installed$(RESET)"; exit 1; \
+	fi
+	@echo -e "$(BLUE)Linting helm chart...$(RESET)"
+	@helm lint k8s/learn-python || exit 1
+	@if ! helm plugin list | grep -q '^unittest'; then \
+		echo -e "$(YELLOW)helm-unittest plugin not found. Installing...$(RESET)"; \
+		helm plugin install https://github.com/helm-unittest/helm-unittest.git; \
+	fi
+	@echo -e "$(BLUE)Running helm-unittest...$(RESET)"
+	@helm unittest --output-type JUnit --output-file k8s/learn-python/test-results.xml k8s/learn-python || exit 1
 
 ## Remove Kubernetes deployment
 k8s-undeploy:

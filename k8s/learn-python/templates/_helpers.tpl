@@ -25,15 +25,10 @@
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-
-
-# Now add common labels but inject the cookiecutter chart label value directly
-app.kubernetes.io/part-of: "learn-python"
-
-
 {{- define "base.labels" -}}
 helm.sh/chart: {{ include "base.chart" . }}
 {{ include "base.selectorLabels" . }}
+app.kubernetes.io/part-of: "learn-python"
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -52,4 +47,3 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
-

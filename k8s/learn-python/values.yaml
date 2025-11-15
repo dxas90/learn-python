@@ -8,13 +8,22 @@ image:
 service:
   type: "ClusterIP"
   port: 8000
+  annotations:
+    traefik.io/service.nativelb: "true"
 
 namespace: "default"
 
 httproute:
-  enabled: False
-  gatewayName: "gateway"
-  gatewayNamespace: "gateway-system"
+  enabled: false
+  gatewayName: "external"
+  gatewayNamespace: "kube-system"
+  sectionName: "https"
+  annotations:
+    networking.x-k8s.io/route-shard: "example"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    external-dns.alpha.kubernetes.io/target: "enter.example.com"
+  labels:
+    x-use-cloudflare-solver: "true"
   hostnames:
     - "example.local"
   rules:
@@ -22,16 +31,22 @@ httproute:
         - path:
             type: PathPrefix
             value: /
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: secured-chain
       backendRefs:
         - port: 8000
 
 persistence:
-  enabled: False
+  enabled: false
   capacity: "8Mi"
   mountPath: "/data"
 
 autoscaling:
-  enabled: True
+  enabled: true
   minReplicas: 1
   maxReplicas: 2
 
@@ -50,15 +65,15 @@ chart:
 env:
   # Environment variables from file will be loaded here during chart generation
   # if env_file_path is provided in cookiecutter.json
-  variables: {}
-
+  variables:
+    APP_ENV: "production"
 # Common secret and settings references
 common:
   secrets:
-    enabled: False
+    enabled: false
     name: "common-secrets"
   settings:
-    enabled: False
+    enabled: false
     name: "common-settings"
 
 # Other values from the original chart are intentionally left as defaults.
@@ -92,3 +107,11 @@ readinessProbe:
     port: 8000
   initialDelaySeconds: 5
   periodSeconds: 10
+# Volume mounts for nginx writable directories (required for readOnlyRootFilesystem)
+volumeMounts:
+  - name: app-cache
+    mountPath: /var/cache/app
+# Volumes for nginx writable directories (emptyDir for temporary storage)
+volumes:
+  - name: app-cache
+    emptyDir: {}

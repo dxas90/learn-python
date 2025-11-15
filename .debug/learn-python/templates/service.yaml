@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: RELEASE-NAME-learn-python
+  labels:
+    helm.sh/chart: learn-python-0.1.0
+    app.kubernetes.io/name: learn-python
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/part-of: "learn-python"
+    app.kubernetes.io/version: "v0.1.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    traefik.io/service.nativelb: "true"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: learn-python
+    app.kubernetes.io/instance: RELEASE-NAME
