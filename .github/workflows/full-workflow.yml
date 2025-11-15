@@ -197,10 +197,11 @@ jobs:
         if: github.event_name != 'pull_request'  # only run Trivy when image is pushed (not on PRs)
         id: trivy
         continue-on-error: true
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${GITHUB_SHA::7}
           format: 'sarif'
+          vuln-type: 'library'
           output: 'trivy-results.sarif'
           # skip version check to avoid failing on newer Trivy versions
           args: '--skip-version-check'
