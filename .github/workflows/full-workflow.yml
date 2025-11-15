@@ -226,7 +226,7 @@ jobs:
       - name: Load Docker image into Kind
         run: |
           # Load image into Kind cluster
-          kind load docker-image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${GITHUB_SHA::7} --name ${{ env.CLUSTER_NAME }}
+          kind load docker-image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${GITHUB_SHA::7} --name ${{ env.CLUSTER_NAME }}
 
       - name: Wait for cluster to be ready
         run: |
