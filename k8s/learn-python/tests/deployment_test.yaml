@@ -59,6 +59,15 @@ tests:
           path: spec.template.spec.containers[0].resources.requests.memory
           value: 56Mi
 
+  - it: should configure http based liveness and readiness probes
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /healthz
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /healthz
+
   - it: should include environment variables
     asserts:
       - contains:

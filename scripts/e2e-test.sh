@@ -13,7 +13,15 @@ SERVICE_NAME=$(kubectl get svc -l app.kubernetes.io/instance=${RELEASE_NAME} -n 
 echo "Testing pod: $POD_NAME"
 
 echo "--- Test 1: Health Endpoint ---"
-HEALTH_RESPONSE=$(kubectl run --rm -i --restart=Never --image=curlimages/curl -n ${NAMESPACE} curl-health -- sh -c "curl -sS http://${SERVICE_NAME}:${SERVICE_PORT}/healthz" 2>&1) || {
+HEALTH_RESPONSE=$(kubectl exec -n ${NAMESPACE} ${POD_NAME} -- python - <<PY
+import sys, urllib.request
+resp = urllib.request.urlopen('http://localhost:%s/healthz' % ${SERVICE_PORT}, timeout=5)
+body = resp.read().decode()
+print(body)
+if resp.getcode() != 200:
+    sys.exit(1)
+PY
+) || {
     echo "❌ Health endpoint test failed"
     echo "Response: $HEALTH_RESPONSE"
     exit 1
@@ -28,7 +36,14 @@ else
 fi
 
 echo "--- Test 2: Root Endpoint ---"
-ROOT_RESPONSE=$(kubectl run --rm -i --restart=Never --image=curlimages/curl -n ${NAMESPACE} curl-root -- sh -c "curl -sS http://${SERVICE_NAME}:${SERVICE_PORT}/" 2>&1) || {
+ROOT_RESPONSE=$(kubectl exec -n ${NAMESPACE} ${POD_NAME} -- python - <<PY
+import urllib.request, sys
+resp = urllib.request.urlopen('http://localhost:%s/' % ${SERVICE_PORT}, timeout=5)
+print(resp.read().decode())
+if resp.getcode() != 200:
+    sys.exit(1)
+PY
+) || {
     echo "❌ Root endpoint test failed"
     exit 1
 }
@@ -45,12 +60,11 @@ echo "--- Test 3: Service Connectivity ---"
 SERVICE_IP=$(kubectl get service ${SERVICE_NAME} -n ${NAMESPACE} -o jsonpath='{.spec.clusterIP}')
 echo "Service IP: $SERVICE_IP"
 
-# Create a temporary pod to test service connectivity
-  kubectl run test-curl --image=curlimages/curl:latest --rm -i --restart=Never -n ${NAMESPACE} -- \
-    curl -f -s http://${SERVICE_NAME}.${NAMESPACE}.svc.cluster.local:${SERVICE_PORT}/healthz || {
+# Test service connectivity via in-pod Python request
+if ! kubectl exec -n ${NAMESPACE} ${POD_NAME} -- python -c "import sys, urllib.request; resp = urllib.request.urlopen('http://${SERVICE_NAME}.${NAMESPACE}.svc.cluster.local:${SERVICE_PORT}/healthz', timeout=5); body=resp.read().decode(); print(body); sys.exit(0 if resp.getcode()==200 else 1)"; then
     echo "❌ Service connectivity test failed"
     exit 1
-}
+fi
 echo "✅ Service connectivity test passed"
 
 echo "--- Test 4: Pod Resilience ---"

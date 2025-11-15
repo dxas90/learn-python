@@ -94,19 +94,27 @@ securityContext:
   runAsNonRoot: true
   runAsUser: 1000
 
+
+# Liveness probe: verify the process is healthy and responding to HTTP requests.
+# Increase initialDelaySeconds to avoid killing the container before Gunicorn is
+# fully started during image boot or with warmup tasks such as psutil compiling.
 livenessProbe:
   httpGet:
     path: /healthz
     port: http
-  initialDelaySeconds: 3
-  periodSeconds: 3
-  failureThreshold: 2
-
-readinessProbe:
-  tcpSocket:
-    port: 8000
-  initialDelaySeconds: 5
+  initialDelaySeconds: 20
   periodSeconds: 10
+  failureThreshold: 6
+
+# Readiness probe: ensure the app returns a 200 on /healthz before traffic is routed.
+# Using HTTP GET makes sure the app is actually healthy (not only that TCP connects).
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
 # Volume mounts for nginx writable directories (required for readOnlyRootFilesystem)
 volumeMounts:
   - name: app-cache

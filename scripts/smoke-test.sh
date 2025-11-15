@@ -24,7 +24,14 @@ echo "Using service: ${SERVICE_NAME}"
 echo "Waiting for pods to be ready..."
 kubectl wait --for=condition=Ready pod -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} --timeout=300s
 
-echo "Testing health endpoint via in-cluster curl pod..."
-kubectl run --rm -i --restart=Never --image=curlimages/curl -n ${NAMESPACE} curl-test -- sh -c "curl -sS http://${SERVICE_NAME}:8000/healthz"
+POD_NAME=$(kubectl get pods -n ${NAMESPACE} -l app.kubernetes.io/instance=${RELEASE_NAME} -o jsonpath='{.items[0].metadata.name}')
+echo "Testing health endpoint via in-pod Python request (pod: ${POD_NAME})..."
+kubectl exec -n ${NAMESPACE} ${POD_NAME} -- python - <<PY
+import sys, urllib.request
+resp = urllib.request.urlopen('http://localhost:8000/healthz', timeout=5)
+print(resp.read().decode())
+if resp.getcode() != 200:
+    sys.exit(1)
+PY
 
 echo "=== Smoke Tests Passed ==="

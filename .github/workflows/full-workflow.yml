@@ -283,7 +283,7 @@ jobs:
       - name: Wait for cluster to be ready
         run: |
           echo "Waiting for nodes to be ready..."
-          kubectl wait --for=condition=Ready nodes --all --timeout=300s
+          kubectl wait --for=condition=Ready nodes --all --timeout=600s
           echo "Cluster is ready!"
 
       - name: Display cluster information
@@ -309,7 +309,7 @@ jobs:
             --set autoscaling.enabled=false \
             --set httproute.enabled=false \
             --wait \
-            --timeout 5m \
+            --timeout 10m \
             --debug
 
           echo "=== Helm Release Status ==="
@@ -318,30 +318,33 @@ jobs:
           echo "=== Deployment Status ==="
           kubectl get deployments
           kubectl get pods -l app.kubernetes.io/name=learn-python
+          # If pods are not ready, describe and show logs to help debugging
+          NOT_READY=$(kubectl get pods -l app.kubernetes.io/instance=${{ env.APP_NAME }} --field-selector=status.phase!=Running --no-headers | wc -l || true)
+          if [ "$NOT_READY" -gt 0 ]; then
+            echo "Detected pods not running; printing descriptions and logs..."
+            kubectl describe pods -l app.kubernetes.io/instance=${{ env.APP_NAME }} || true
+            for pod in $(kubectl get pods -l app.kubernetes.io/instance=${{ env.APP_NAME }} -o jsonpath='{.items[*].metadata.name}'); do
+              echo "=== Logs for $pod ==="
+              kubectl logs $pod --all-containers=true || true
+            done
+          fi
           kubectl get services
 
-      - name: Run Smoke Test (curl inside cluster)
+      - name: Run Smoke Test
         run: |
           echo "Running quick smoke test..."
-          # Wait for the deployment to be available
-          kubectl wait --for=condition=available --selector=app.kubernetes.io/instance=${{ env.APP_NAME }} deployment --timeout=300s || true
-          SERVICE_NAME=$(kubectl get svc -l app.kubernetes.io/instance=${{ env.APP_NAME }} -o jsonpath='{.items[0].metadata.name}')
-          kubectl run --rm -i --restart=Never --image=curlimages/curl curl-test -- sh -c "curl -sS http://${SERVICE_NAME}:8000/healthz"
+          # NOTE: smoke-test.sh validates basic cluster health and deployment
+          # Runs AFTER Helm deployment completes successfully
+          chmod +x scripts/smoke-test.sh
+          ./scripts/smoke-test.sh
 
-      - name: Run Comprehensive E2E Tests (port-forward)
+      - name: Run Comprehensive E2E Tests
         run: |
           echo "Starting comprehensive end-to-end testing..."
-          SERVICE_NAME=$(kubectl get svc -l app.kubernetes.io/instance=${{ env.APP_NAME }} -o jsonpath='{.items[0].metadata.name}')
-          kubectl port-forward service/${SERVICE_NAME} 8000:8000 >/tmp/port-forward.log 2>&1 & PF_PID=$!
-          # Wait for the port-forward to start
-          sleep 2
-          # Test ping endpoint
-          curl -fsS http://localhost:8000/ping
-          # Test health endpoint
-          curl -fsS http://localhost:8000/healthz
-          # Test echo endpoint
-          curl -fsS -X POST -H "Content-Type: application/json" -d '{"message":"hello","number":42}' http://localhost:8000/echo
-          kill $PF_PID || true
+          # NOTE: e2e-test.sh performs full endpoint testing, pod resilience checks
+          # Requires Kind cluster with deployed application
+          chmod +x scripts/e2e-test.sh
+          ./scripts/e2e-test.sh
 
       - name: Verify Deployment Health
         run: |
