@@ -137,7 +137,7 @@ jobs:
   build:
     name: Build and Scan Docker Image
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [lint, test, helm-test]
     permissions:
       contents: read
       packages: write
@@ -173,7 +173,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=sha-
             type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=RELEASE.{{date 'YYYY-MM-DDTHH-mm-ss'}}Z,enable=${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
+#            type=raw,value=RELEASE.{{date 'YYYY-MM-DDTHH-mm-ss'}}Z,enable=${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
 
       - name: Build and push Docker image
         id: build
@@ -193,18 +193,6 @@ jobs:
             VCS_REF=${{ github.sha }}
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
 
-      - name: Export image for Kind testing
-        run: |
-          # Image is already loaded in Docker daemon, just save it
-          docker save -o /tmp/image.tar $(echo "${{ steps.meta.outputs.tags }}" | head -n1)
-
-      - name: Upload Docker image artifact for Kind testing
-        uses: actions/upload-artifact@v5
-        with:
-          name: docker-image
-          path: /tmp/image.tar
-          retention-days: 1
-
       - name: Run Trivy vulnerability scanner
         if: github.event_name != 'pull_request'  # only run Trivy when image is pushed (not on PRs)
         id: trivy
@@ -223,36 +211,6 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
 
-  cleanup-packages:
-    name: Cleanup Old Package Versions
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name != 'pull_request'
-    permissions:
-      packages: write
-    steps:
-      - name: Delete old package versions
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: 'learn-python'
-          package-type: 'container'
-          min-versions-to-keep: 20
-          delete-only-untagged-versions: "true"
-
-  test-deployment:
-    name: Test Kubernetes Deployment
-    runs-on: ubuntu-latest
-    needs: [build, helm-test]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Download Docker image artifact
-        uses: actions/download-artifact@v6
-        with:
-          name: docker-image
-          path: /tmp
-
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
@@ -267,18 +225,8 @@ jobs:
 
       - name: Load Docker image into Kind
         run: |
-          # Load the image from artifact
-          docker load -i /tmp/image.tar
-
-          # Get the image name and tag from the loaded image
-          IMAGE_NAME=$(docker images --format "{{.Repository}}:{{.Tag}}" | head -n 1)
-          echo "Loaded image: $IMAGE_NAME"
-
-          # Tag it for local use
-          docker tag $IMAGE_NAME ${{ env.APP_NAME }}:test
-
           # Load image into Kind cluster
-          kind load docker-image ${{ env.APP_NAME }}:test --name ${{ env.CLUSTER_NAME }}
+          kind load docker-image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${GITHUB_SHA::7} --name ${{ env.CLUSTER_NAME }}
 
       - name: Wait for cluster to be ready
         run: |
@@ -386,6 +334,24 @@ jobs:
         run: |
           echo "Cleaning up resources..."
           helm uninstall ${{ env.APP_NAME }} --ignore-not-found || true
+
+
+
+  cleanup-packages:
+    name: Cleanup Old Package Versions
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name != 'pull_request'
+    permissions:
+      packages: write
+    steps:
+      - name: Delete old package versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: 'learn-python'
+          package-type: 'container'
+          min-versions-to-keep: 20
+          delete-only-untagged-versions: "true"
 
   deploy-staging:
     name: Deploy to Staging Environment
