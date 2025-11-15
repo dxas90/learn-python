@@ -197,7 +197,7 @@ jobs:
         if: github.event_name != 'pull_request'
         id: extract-sha-tag
         run: |
-          echo "sha-tag=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ env.GITHUB_SHA::7 }}" >> $GITHUB_OUTPUT
+          echo "sha-tag=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
           echo "Found SHA tag: ${SHA_TAG}"
 
       - name: Run Trivy vulnerability scanner
@@ -206,7 +206,7 @@ jobs:
         continue-on-error: true
         uses: aquasecurity/trivy-action@0.33.1
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ env.GITHUB_SHA::7 }}
+          image-ref: ${{ steps.extract-sha-tag.outputs.sha-tag }}
           format: 'sarif'
           vuln-type: 'library'
           output: 'trivy-results.sarif'
