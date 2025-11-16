@@ -13,7 +13,7 @@ SERVICE_NAME=$(kubectl get svc -l app.kubernetes.io/instance=${RELEASE_NAME} -n 
 echo "Testing pod: $POD_NAME"
 
 echo "--- Test 1: Health Endpoint ---"
-HEALTH_RESPONSE=$(kubectl exec -n ${NAMESPACE} ${POD_NAME} -- python - <<"PY"
+HEALTH_RESPONSE=$(kubectl exec -n ${NAMESPACE} ${POD_NAME} -- /usr/local/bin/python - <<"PY"
 import sys, urllib.request
 try:
     resp = urllib.request.urlopen('http://localhost:${SERVICE_PORT}/healthz', timeout=5)
@@ -41,7 +41,7 @@ else
 fi
 
 echo "--- Test 2: Root Endpoint ---"
-ROOT_RESPONSE=$(kubectl exec -n ${NAMESPACE} ${POD_NAME} -- python - <<"PY"
+ROOT_RESPONSE=$(kubectl exec -n ${NAMESPACE} ${POD_NAME} -- /usr/local/bin/python - <<"PY"
 import urllib.request, sys
 resp = urllib.request.urlopen('http://localhost:${SERVICE_PORT}/', timeout=5)
 print(resp.read().decode())
@@ -66,7 +66,7 @@ SERVICE_IP=$(kubectl get service ${SERVICE_NAME} -n ${NAMESPACE} -o jsonpath='{.
 echo "Service IP: $SERVICE_IP"
 
 # Test service connectivity via in-pod Python request
-if ! kubectl exec -n ${NAMESPACE} ${POD_NAME} -- python -c "import sys, urllib.request; resp = urllib.request.urlopen('http://${SERVICE_NAME}.${NAMESPACE}.svc.cluster.local:${SERVICE_PORT}/healthz', timeout=5); body=resp.read().decode(); print(body); sys.exit(0 if resp.getcode()==200 else 1)"; then
+if ! kubectl exec -n ${NAMESPACE} ${POD_NAME} -- /usr/local/bin/python -c "import sys, urllib.request; resp = urllib.request.urlopen('http://${SERVICE_NAME}.${NAMESPACE}.svc.cluster.local:${SERVICE_PORT}/healthz', timeout=5); body=resp.read().decode(); print(body); sys.exit(0 if resp.getcode()==200 else 1)"; then
     echo "❌ Service connectivity test failed"
     exit 1
 fi
