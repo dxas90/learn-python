@@ -1,7 +1,5 @@
 import os
-import platform
 import sys
-import psutil
 from datetime import datetime, UTC
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -135,24 +133,10 @@ def ping():
 # Route: Health check
 @app.route("/healthz")
 def healthz():
-    """Health check endpoint with detailed system information"""
-    process = psutil.Process()
-
-    # Get memory info
-    memory_info = process.memory_info()
-    virtual_memory = psutil.virtual_memory()
-
+    """Health check endpoint with basic information"""
     health_data = {
         "status": "healthy",
-        "uptime": datetime.now().timestamp() - process.create_time(),
         "timestamp": datetime.now(UTC).isoformat(),
-        "memory": {
-            "rss": memory_info.rss,
-            "vms": memory_info.vms,
-            "percent": process.memory_percent(),
-            "available": virtual_memory.available,
-            "total": virtual_memory.total,
-        },
         "version": APP_INFO["version"],
         "environment": APP_INFO["environment"],
     }
@@ -170,39 +154,10 @@ def healthz():
 @app.route("/info")
 def info():
     """Application and system information endpoint"""
-    process = psutil.Process()
-
-    # Get memory info
-    memory_info = process.memory_info()
-    virtual_memory = psutil.virtual_memory()
-
-    # Get CPU info
-    cpu_percent = psutil.cpu_percent(interval=0.1)
-    cpu_count = psutil.cpu_count()
-
     system_info = {
         "application": APP_INFO,
         "system": {
-            "platform": platform.system(),
-            "platform_release": platform.release(),
-            "platform_version": platform.version(),
-            "architecture": platform.machine(),
-            "processor": platform.processor(),
             "python_version": sys.version,
-            "uptime": datetime.now().timestamp() - process.create_time(),
-            "memory": {
-                "rss": memory_info.rss,
-                "vms": memory_info.vms,
-                "percent": process.memory_percent(),
-                "available": virtual_memory.available,
-                "total": virtual_memory.total,
-                "used": virtual_memory.used,
-            },
-            "cpu": {
-                "count": cpu_count,
-                "percent": cpu_percent,
-                "times": process.cpu_times()._asdict(),
-            },
         },
         "environment": {
             "python_env": os.environ.get("PYTHON_ENV", "Not set"),

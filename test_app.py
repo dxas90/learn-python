@@ -35,9 +35,9 @@ class TestFlaskAPI(unittest.TestCase):
         data = json.loads(response.data)
         self.assertTrue(data["success"])
         self.assertEqual(data["data"]["status"], "healthy")
-        self.assertIn("uptime", data["data"])
-        self.assertIn("memory", data["data"])
         self.assertIn("version", data["data"])
+        self.assertIn("environment", data["data"])
+        self.assertIn("timestamp", data["data"])
 
     def test_info(self):
         """Test GET /info - Application info endpoint"""
