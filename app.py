@@ -1,6 +1,6 @@
 import os
 import sys
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
@@ -14,7 +14,7 @@ APP_INFO = {
     "name": "learn-python",
     "version": os.environ.get("APP_VERSION", "0.0.1"),
     "environment": os.environ.get("FLASK_ENV", "development"),
-    "timestamp": datetime.now(UTC).isoformat(),
+    "timestamp": datetime.now(timezone.utc).isoformat(),
 }
 
 
@@ -22,7 +22,7 @@ APP_INFO = {
 @app.before_request
 def log_request():
     if os.environ.get("FLASK_ENV") != "test":
-        timestamp = datetime.now(UTC).isoformat()
+        timestamp = datetime.now(timezone.utc).isoformat()
         user_agent = request.headers.get("User-Agent", "Unknown")
         print(
             f"[{timestamp}] {request.method} {request.path} - User-Agent: {user_agent}"
@@ -49,7 +49,7 @@ def not_found(error):
                 "error": True,
                 "message": "Resource not found",
                 "statusCode": 404,
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         ),
         404,
@@ -64,7 +64,7 @@ def internal_error(error):
                 "error": True,
                 "message": "Internal Server Error",
                 "statusCode": 500,
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "details": (
                     str(error) if os.environ.get("FLASK_ENV") != "production" else None
                 ),
@@ -118,7 +118,7 @@ def index():
         {
             "success": True,
             "data": welcome_data,
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     )
 
@@ -136,7 +136,7 @@ def healthz():
     """Health check endpoint with basic information"""
     health_data = {
         "status": "healthy",
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": APP_INFO["version"],
         "environment": APP_INFO["environment"],
     }
@@ -145,7 +145,7 @@ def healthz():
         {
             "success": True,
             "data": health_data,
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     )
 
@@ -171,7 +171,7 @@ def info():
         {
             "success": True,
             "data": system_info,
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     )
 
@@ -190,7 +190,7 @@ def echo():
                     "headers": dict(request.headers),
                     "method": request.method,
                 },
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         )
     except Exception:
@@ -200,7 +200,7 @@ def echo():
                     "error": True,
                     "message": "Invalid JSON",
                     "statusCode": 400,
-                    "timestamp": datetime.now(UTC).isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
             ),
             400,
@@ -219,7 +219,7 @@ def version():
                 "name": APP_INFO["name"],
                 "environment": APP_INFO["environment"],
             },
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     )
 

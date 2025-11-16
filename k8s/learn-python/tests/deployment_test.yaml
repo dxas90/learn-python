@@ -51,10 +51,13 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.containers[0].resources.limits.memory
-          value: 128Mi
+          value: 256Mi
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 1
       - equal:
           path: spec.template.spec.containers[0].resources.requests.memory
-          value: 64Mi
+          value: 128Mi
 
   - it: should configure http based liveness and readiness probes
     asserts:

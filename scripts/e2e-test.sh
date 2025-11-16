@@ -15,14 +15,22 @@ echo "Testing pod: $POD_NAME"
 echo "--- Test 1: Health Endpoint ---"
 HEALTH_RESPONSE=$(kubectl exec -n ${NAMESPACE} ${POD_NAME} -- python - <<PY
 import sys, urllib.request
-resp = urllib.request.urlopen('http://localhost:%s/healthz' % ${SERVICE_PORT}, timeout=5)
-body = resp.read().decode()
-print(body)
-if resp.getcode() != 200:
+try:
+    resp = urllib.request.urlopen('http://localhost:%s/healthz' % ${SERVICE_PORT}, timeout=5)
+    body = resp.read().decode()
+    print(body)
+    if resp.getcode() != 200:
+        print("Status code:", resp.getcode())
+        sys.exit(1)
+except Exception as e:
+    print("Error:", str(e))
     sys.exit(1)
 PY
 ) || {
     echo "❌ Health endpoint test failed"
+    echo "Response: $HEALTH_RESPONSE"
+    exit 1
+}
     echo "Response: $HEALTH_RESPONSE"
     exit 1
 }

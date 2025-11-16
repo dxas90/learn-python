@@ -52,10 +52,10 @@ autoscaling:
 
 resources:
   limits:
-    memory: 128Mi
+    memory: 256Mi
   requests:
-    cpu: 5m
-    memory: 64Mi
+    cpu: 1
+    memory: 128Mi
 
 chart:
   label: "learn-python"
