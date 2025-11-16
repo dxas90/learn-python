@@ -29,7 +29,7 @@ PY
 ) || {
     echo "❌ Health endpoint test failed"
     echo "Response: $HEALTH_RESPONSE"
-    exit 1
+    exit 10
 }
 
 if [[ "$HEALTH_RESPONSE" == *"healthy"* ]]; then
@@ -37,7 +37,7 @@ if [[ "$HEALTH_RESPONSE" == *"healthy"* ]]; then
 else
     echo "❌ Health endpoint test failed"
     echo "Response: $HEALTH_RESPONSE"
-    exit 1
+    exit 10
 fi
 
 echo "--- Test 2: Root Endpoint ---"
@@ -50,14 +50,14 @@ if resp.getcode() != 200:
 PY
 ) || {
     echo "❌ Root endpoint test failed"
-    exit 1
+    exit 11
 }
 
 if [[ ! -z "$ROOT_RESPONSE" ]]; then
     echo "✅ Root endpoint test passed"
 else
     echo "❌ Root endpoint test failed"
-    exit 1
+    exit 11
 fi
 
 echo "--- Test 3: Service Connectivity ---"
@@ -68,7 +68,7 @@ echo "Service IP: $SERVICE_IP"
 # Test service connectivity via in-pod Python request
 if ! kubectl exec -n ${NAMESPACE} ${POD_NAME} -- /usr/local/bin/python -c "import sys, urllib.request; resp = urllib.request.urlopen('http://${SERVICE_NAME}.${NAMESPACE}.svc.cluster.local:${SERVICE_PORT}/healthz', timeout=5); body=resp.read().decode(); print(body); sys.exit(0 if resp.getcode()==200 else 1)"; then
     echo "❌ Service connectivity test failed"
-    exit 1
+    exit 12
 fi
 echo "✅ Service connectivity test passed"
 
@@ -88,7 +88,7 @@ if [ "$FINAL_POD_COUNT" -eq "$INITIAL_POD_COUNT" ]; then
     echo "✅ Pod resilience test passed"
 else
     echo "❌ Pod resilience test failed (Expected: $INITIAL_POD_COUNT, Got: $FINAL_POD_COUNT)"
-    exit 1
+    exit 13
 fi
 
 echo "--- Test 5: Resource Limits ---"
