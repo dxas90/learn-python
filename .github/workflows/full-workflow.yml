@@ -342,8 +342,6 @@ jobs:
           echo "Cleaning up resources..."
           helm uninstall ${{ env.APP_NAME }} --ignore-not-found || true
 
-
-
   cleanup-packages:
     name: Cleanup Old Package Versions
     runs-on: ubuntu-latest
