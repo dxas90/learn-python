@@ -52,11 +52,10 @@ autoscaling:
 
 resources:
   limits:
-    cpu: 1m
-    memory: 56Mi
+    memory: 128Mi
   requests:
-    cpu: 1m
-    memory: 56Mi
+    cpu: 5m
+    memory: 64Mi
 
 chart:
   label: "learn-python"
@@ -106,6 +105,7 @@ livenessProbe:
   initialDelaySeconds: 60
   periodSeconds: 10
   failureThreshold: 6
+  timeoutSeconds: 5
 
 # Readiness probe: ensure the app returns a 200 on /healthz before traffic is routed.
 # Using HTTP GET makes sure the app is actually healthy (not only that TCP connects).
@@ -116,6 +116,7 @@ readinessProbe:
   initialDelaySeconds: 20
   periodSeconds: 10
   failureThreshold: 3
+  timeoutSeconds: 5
 # Volume mounts for nginx writable directories (required for readOnlyRootFilesystem)
 volumeMounts:
   - name: app-cache

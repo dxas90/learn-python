@@ -266,7 +266,7 @@ jobs:
             --set httproute.enabled=false \
             -f .github/sample-env.yaml \
             --wait \
-            --timeout 10m \
+            --timeout 6m \
             --debug
 
           echo "=== Helm Release Status ==="
