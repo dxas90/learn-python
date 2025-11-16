@@ -210,8 +210,6 @@ jobs:
           format: 'sarif'
           vuln-type: 'library'
           output: 'trivy-results.sarif'
-          # skip version check to avoid failing on newer Trivy versions
-          args: '--skip-version-check'
 
       - name: Upload Trivy scan results to GitHub Security tab
         if: github.event_name != 'pull_request' && steps.trivy.outcome == 'success'

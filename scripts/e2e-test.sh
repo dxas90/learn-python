@@ -13,10 +13,10 @@ SERVICE_NAME=$(kubectl get svc -l app.kubernetes.io/instance=${RELEASE_NAME} -n 
 echo "Testing pod: $POD_NAME"
 
 echo "--- Test 1: Health Endpoint ---"
-HEALTH_RESPONSE=$(kubectl exec -n ${NAMESPACE} ${POD_NAME} -- python - <<PY
+HEALTH_RESPONSE=$(kubectl exec -n ${NAMESPACE} ${POD_NAME} -- python - <<"PY"
 import sys, urllib.request
 try:
-    resp = urllib.request.urlopen('http://localhost:%s/healthz' % ${SERVICE_PORT}, timeout=5)
+    resp = urllib.request.urlopen('http://localhost:${SERVICE_PORT}/healthz', timeout=5)
     body = resp.read().decode()
     print(body)
     if resp.getcode() != 200:
@@ -31,9 +31,6 @@ PY
     echo "Response: $HEALTH_RESPONSE"
     exit 1
 }
-    echo "Response: $HEALTH_RESPONSE"
-    exit 1
-}
 
 if [[ "$HEALTH_RESPONSE" == *"healthy"* ]]; then
     echo "✅ Health endpoint test passed"
@@ -44,9 +41,9 @@ else
 fi
 
 echo "--- Test 2: Root Endpoint ---"
-ROOT_RESPONSE=$(kubectl exec -n ${NAMESPACE} ${POD_NAME} -- python - <<PY
+ROOT_RESPONSE=$(kubectl exec -n ${NAMESPACE} ${POD_NAME} -- python - <<"PY"
 import urllib.request, sys
-resp = urllib.request.urlopen('http://localhost:%s/' % ${SERVICE_PORT}, timeout=5)
+resp = urllib.request.urlopen('http://localhost:${SERVICE_PORT}/', timeout=5)
 print(resp.read().decode())
 if resp.getcode() != 200:
     sys.exit(1)
