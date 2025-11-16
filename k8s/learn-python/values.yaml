@@ -54,8 +54,8 @@ resources:
   limits:
     memory: 256Mi
   requests:
-    cpu: 1
-    memory: 128Mi
+    cpu: 50m
+    memory: 256Mi
 
 chart:
   label: "learn-python"

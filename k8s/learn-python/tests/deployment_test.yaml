@@ -54,10 +54,10 @@ tests:
           value: 256Mi
       - equal:
           path: spec.template.spec.containers[0].resources.requests.cpu
-          value: 1
+          value: 50m
       - equal:
           path: spec.template.spec.containers[0].resources.requests.memory
-          value: 128Mi
+          value: 256Mi
 
   - it: should configure http based liveness and readiness probes
     asserts:
