@@ -3,6 +3,6 @@ pytest==9.0.1
 pytest-cov==7.0.0
 pytest-watch==4.2.0
 flake8==6.1.0
-black==24.3.0
+black==24.10.0
 autopep8==2.3.2
 pip-audit==2.6.1
