@@ -67,6 +67,7 @@ env:
   variables:
     APP_ENV: "production"
     TMPDIR: "/tmp"
+    OTEL_EXPORTER_OTLP_ENDPOINT: "tempo.observability.svc.cluster.local:4317"
 # Common secret and settings references
 common:
   secrets:

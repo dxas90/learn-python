@@ -2,8 +2,15 @@ import os
 import sys
 import logging
 from datetime import datetime, timezone
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.sdk.resources import Resource
 
 # Configure logging
 logging.basicConfig(
@@ -19,10 +26,46 @@ logger = logging.getLogger(__name__)
 log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
 
+# Initialize OpenTelemetry tracing
+if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
+    resource = Resource.create(
+        {
+            "service.name": "learn-python",
+            "service.version": os.environ.get("APP_VERSION", "0.0.1"),
+            "deployment.environment": os.environ.get("FLASK_ENV", "development"),
+        }
+    )
+    trace.set_tracer_provider(TracerProvider(resource=resource))
+    otlp_exporter = OTLPSpanExporter(
+        endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"),
+        insecure=True,
+    )
+    trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(otlp_exporter))
+    logger.info("OpenTelemetry tracing enabled")
+else:
+    logger.info("OpenTelemetry tracing disabled (OTEL_EXPORTER_OTLP_ENDPOINT not set)")
+
+tracer = trace.get_tracer(__name__)
+
 app = Flask(__name__)
+
+# Instrument Flask with OpenTelemetry
+FlaskInstrumentor().instrument_app(app)
 
 # Configure CORS
 CORS(app, origins=os.environ.get("CORS_ORIGIN", "*"))
+
+# Prometheus metrics
+REQUEST_COUNT = Counter(
+    "http_requests_total",
+    "Total HTTP requests",
+    ["method", "endpoint", "status"],
+)
+REQUEST_DURATION = Histogram(
+    "http_request_duration_seconds",
+    "HTTP request duration in seconds",
+    ["method", "endpoint"],
+)
 
 # Application metadata
 APP_INFO = {
@@ -39,6 +82,7 @@ def log_request():
     if os.environ.get("FLASK_ENV") != "test":
         user_agent = request.headers.get("User-Agent", "Unknown")
         logger.info(f"{request.method} {request.path} - User-Agent: {user_agent}")
+    request._start_time = datetime.now(timezone.utc)
 
 
 # Security headers middleware
@@ -49,6 +93,19 @@ def set_security_headers(response):
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Content-Security-Policy"] = "default-src 'self'"
+
+    # Track Prometheus metrics
+    if hasattr(request, "_start_time") and request.endpoint != "metrics":
+        duration = (datetime.now(timezone.utc) - request._start_time).total_seconds()
+        REQUEST_DURATION.labels(
+            method=request.method, endpoint=request.endpoint or "unknown"
+        ).observe(duration)
+        REQUEST_COUNT.labels(
+            method=request.method,
+            endpoint=request.endpoint or "unknown",
+            status=response.status_code,
+        ).inc()
+
     return response
 
 
@@ -123,6 +180,11 @@ def index():
                 "path": "/echo",
                 "method": "POST",
                 "description": "Echo back the request body",
+            },
+            {
+                "path": "/metrics",
+                "method": "GET",
+                "description": "Prometheus metrics endpoint",
             },
         ],
     }
@@ -217,6 +279,13 @@ def echo():
             ),
             400,
         )
+
+
+# Route: Prometheus metrics
+@app.route("/metrics")
+def metrics():
+    """Prometheus metrics endpoint"""
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 
 # Route: Version
