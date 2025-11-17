@@ -5,9 +5,9 @@ metadata:
   labels:
     {{- include "base.labels" . | nindent 4 }}
   annotations:
-    prometheus.io/port: {{ .Values.service.port }}
-    prometheus.io/scrape: true
-    prometheus.io/path: /metrics
+    prometheus.io/port: "{{ .Values.service.port }}"
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
     {{- with .Values.deploymentAnnotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}

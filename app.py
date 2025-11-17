@@ -37,7 +37,7 @@ if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
     )
     trace.set_tracer_provider(TracerProvider(resource=resource))
     otlp_exporter = OTLPSpanExporter(
-        endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"),
+        endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "localhost:4317"),
         insecure=True,
     )
     trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(otlp_exporter))
