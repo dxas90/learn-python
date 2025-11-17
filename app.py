@@ -1,8 +1,17 @@
 import os
 import sys
+import logging
 from datetime import datetime, timezone
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG if os.environ.get("FLASK_ENV") == "development" else logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%S"
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -22,10 +31,9 @@ APP_INFO = {
 @app.before_request
 def log_request():
     if os.environ.get("FLASK_ENV") != "test":
-        timestamp = datetime.now(timezone.utc).isoformat()
         user_agent = request.headers.get("User-Agent", "Unknown")
-        print(
-            f"[{timestamp}] {request.method} {request.path} - User-Agent: {user_agent}"
+        logger.debug(
+            f"{request.method} {request.path} - User-Agent: {user_agent}"
         )
 
 
@@ -229,9 +237,9 @@ if __name__ == "__main__":
     host = os.environ.get("HOST", "0.0.0.0")
     debug = os.environ.get("FLASK_ENV", "development") == "development"
 
-    print(f"🚀 Server starting at http://{host}:{port}/")
-    print(f"📊 Environment: {APP_INFO['environment']}")
-    print(f"📦 Version: {APP_INFO['version']}")
-    print(f"🕐 Started at: {APP_INFO['timestamp']}")
+    logger.info(f"🚀 Server starting at http://{host}:{port}/")
+    logger.info(f"📊 Environment: {APP_INFO['environment']}")
+    logger.info(f"📦 Version: {APP_INFO['version']}")
+    logger.info(f"🕐 Started at: {APP_INFO['timestamp']}")
 
     app.run(host=host, port=port, debug=debug)
