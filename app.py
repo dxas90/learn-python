@@ -32,7 +32,7 @@ APP_INFO = {
 def log_request():
     if os.environ.get("FLASK_ENV") != "test":
         user_agent = request.headers.get("User-Agent", "Unknown")
-        logger.debug(
+        logger.info(
             f"{request.method} {request.path} - User-Agent: {user_agent}"
         )
 
