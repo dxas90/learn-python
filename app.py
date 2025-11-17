@@ -7,9 +7,11 @@ from flask_cors import CORS
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG if os.environ.get("FLASK_ENV") == "development" else logging.INFO,
+    level=(
+        logging.DEBUG if os.environ.get("FLASK_ENV") == "development" else logging.INFO
+    ),
     format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%dT%H:%M:%S"
+    datefmt="%Y-%m-%dT%H:%M:%S",
 )
 logger = logging.getLogger(__name__)
 
@@ -32,9 +34,7 @@ APP_INFO = {
 def log_request():
     if os.environ.get("FLASK_ENV") != "test":
         user_agent = request.headers.get("User-Agent", "Unknown")
-        logger.info(
-            f"{request.method} {request.path} - User-Agent: {user_agent}"
-        )
+        logger.info(f"{request.method} {request.path} - User-Agent: {user_agent}")
 
 
 # Security headers middleware
