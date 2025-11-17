@@ -15,6 +15,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Disable werkzeug access logging to avoid duplicates
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
 app = Flask(__name__)
 
 # Configure CORS

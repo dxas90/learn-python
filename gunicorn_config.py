@@ -20,10 +20,9 @@ max_requests = int(os.environ.get('GUNICORN_MAX_REQUESTS', '1000'))
 max_requests_jitter = int(os.environ.get('GUNICORN_MAX_REQUESTS_JITTER', '100'))
 
 # Logging
-accesslog = '-'
+accesslog = None  # Disable access log (we handle logging in Flask app)
 errorlog = '-'
 loglevel = os.environ.get('GUNICORN_LOG_LEVEL', 'info')
-access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(D)s'
 
 # Security
 limit_request_line = int(os.environ.get('GUNICORN_LIMIT_REQUEST_LINE', '4096'))
