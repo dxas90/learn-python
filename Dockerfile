@@ -43,6 +43,10 @@ COPY . .
 # Expose the port that the application listens on.
 EXPOSE 8000
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD python -c "import http.client; conn = http.client.HTTPConnection('localhost:8000'); conn.request('GET', '/healthz'); res = conn.getresponse(); exit(0 if res.status == 200 else 1)" || exit 1
+
 # Run the application in development mode
 CMD ["python", "app.py"]
 
@@ -88,6 +92,10 @@ ENV TMPDIR=/tmp
 
 # Expose the port that the application listens on.
 EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD python -c "import http.client; conn = http.client.HTTPConnection('localhost:8000'); conn.request('GET', '/healthz'); res = conn.getresponse(); exit(0 if res.status == 200 else 1)" || exit 1
 
 # Run the application.
 CMD ["gunicorn", "app:app", "-c", "gunicorn_config.py"]
