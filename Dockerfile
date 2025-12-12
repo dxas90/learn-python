@@ -36,7 +36,7 @@ WORKDIR /app
 # Install runtime dependencies only
 RUN apk add --no-cache \
     ca-certificates \
-    tzdata
+    tzdata curl
 
 # Create a non-privileged user
 RUN addgroup -g 1001 appuser && \
@@ -62,7 +62,7 @@ EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD python -c "import http.client; conn = http.client.HTTPConnection('localhost:8000'); conn.request('GET', '/healthz'); res = conn.getresponse(); exit(0 if res.status == 200 else 1)" || exit 1
+  CMD curl http://127.0.0.1:8000/healthz || exit 1
 
 # Run the application
 CMD ["gunicorn", "app:app", "-c", "gunicorn_config.py"]
