@@ -1,5 +1,4 @@
 from apispec import APISpec
-from apispec.ext.marshmallow import MarshmallowPlugin
 from apispec_webframeworks.flask import FlaskPlugin
 
 
@@ -15,7 +14,7 @@ def generate_openapi_spec():
             description="A simple Flask microservice for learning and demonstration"
         ),
         servers=[{"url": "http://localhost:8000", "description": "Local server"}],
-        plugins=[FlaskPlugin(), MarshmallowPlugin()],
+        plugins=[FlaskPlugin()],
     )
 
     # Add paths manually for all endpoints
