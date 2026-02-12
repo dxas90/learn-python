@@ -11,6 +11,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.sdk.resources import Resource
+from lib.openapi_generator import generate_openapi_spec
 
 # Configure logging
 logging.basicConfig(
@@ -186,6 +187,11 @@ def index():
                 "method": "GET",
                 "description": "Prometheus metrics endpoint",
             },
+            {
+                "path": "/openapi.json",
+                "method": "GET",
+                "description": "OpenAPI specification",
+            },
         ],
     }
     return jsonify(
@@ -303,6 +309,13 @@ def version():
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     )
+
+
+# Route: OpenAPI specification
+@app.route("/openapi.json")
+def openapi_spec():
+    """OpenAPI specification endpoint"""
+    return jsonify(generate_openapi_spec())
 
 
 if __name__ == "__main__":

@@ -631,4 +631,5 @@ Temporary Items
 
 .debug/
 !scripts
+!lib
 __snapshot__
