@@ -28,7 +28,7 @@
 {{- define "base.labels" -}}
 helm.sh/chart: {{ include "base.chart" . }}
 {{ include "base.selectorLabels" . }}
-app.kubernetes.io/part-of: "learn-python"
+app.kubernetes.io/part-of: "{{ .Values.chart_label | default .Chart.Name }}"
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -46,4 +46,8 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
+{{- end }}
+
+{{- define "base.priorityClassName" -}}
+{{- default (include "base.fullname" .) .Values.priorityClass.name | trunc 63 | trimSuffix "-" }}
 {{- end }}

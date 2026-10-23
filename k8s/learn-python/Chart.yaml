@@ -4,5 +4,14 @@ description: "Helm chart learn-python"
 type: application
 version: "0.1.0"
 appVersion: "v0.1.0"
+icon: "https://www.python.org/static/community_logos/python-logo-generic.svg"
+home: "https://github.com/dxas90/learn-python"
+sources:
+  - "https://github.com/dxas90/learn-python"
+keywords:
+  - python
+  - api
+  - web
+  - kubernetes
 maintainers:
   - name: "Daniel Ramirez <dxas90@gmail.com>"
