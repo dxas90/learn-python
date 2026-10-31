@@ -6,10 +6,10 @@ itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
 Werkzeug==3.1.9
-opentelemetry-api==1.45.1
-opentelemetry-sdk==1.45.1
+opentelemetry-api==1.45.2
+opentelemetry-sdk==1.45.2
 opentelemetry-instrumentation-flask>=0.50b0
-opentelemetry-exporter-otlp==1.45.1
+opentelemetry-exporter-otlp==1.45.2
 prometheus-client==0.24.1
 apispec==6.6.0
 apispec-webframeworks==1.1.0
