@@ -12,4 +12,4 @@ opentelemetry-instrumentation-flask>=0.50b0
 opentelemetry-exporter-otlp==1.45.1
 prometheus-client==0.24.1
 apispec==6.6.0
-apispec-webframeworks==1.1.0
+apispec-webframeworks==1.2.0
